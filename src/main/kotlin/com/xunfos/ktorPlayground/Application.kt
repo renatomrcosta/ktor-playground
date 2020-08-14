@@ -1,7 +1,7 @@
-package com.xunfos
+package com.xunfos.ktorPlayground
 
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.xunfos.util.log
+import com.xunfos.ktorPlayground.util.trace
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -31,33 +31,33 @@ fun Application.module(testing: Boolean = false) {
 
     routing {
         get("/healthcheck") {
-            log("Calling Health Check")
+            trace("Calling Health Check")
             call.respondText("OK", contentType = ContentType.Text.Plain)
         }
         get("long_wait") {
             doSuspendWork()
         }
         get("long_wait_context") {
-            log("Starting Execution of Suspend Work Get")
+            trace("Starting Execution of Suspend Work Get")
 
             withContext(Dispatchers.IO) { doSuspendWork() }
 
-            log("Finishing Execution of Suspend Work Get")
+            trace("Finishing Execution of Suspend Work Get")
         }
         get("stress_work") {
-            log("Starting Execution of Stress Test")
+            trace("Starting Execution of Stress Test")
 
             doStressWork()
 
-            log("Finishing Execution of Stress Test")
+            trace("Finishing Execution of Stress Test")
         }
 
         get("stress_work_blocking") {
-            log("Starting Execution of Stress Test BLOCKING")
+            trace("Starting Execution of Stress Test BLOCKING")
 
             doStressWorkBlocking()
 
-            log("Finishing Execution of Stress Test BLOCKING ")
+            trace("Finishing Execution of Stress Test BLOCKING ")
         }
 
         get("long_wait_run_blocking") {
@@ -72,41 +72,41 @@ fun Application.module(testing: Boolean = false) {
 }
 
 private fun doBlockingWork() {
-    log("Before blocking for 10s")
+    trace("Before blocking for 10s")
     Thread.sleep(10_000)
-    log("Finished blocking for 10s")
+    trace("Finished blocking for 10s")
 }
 
 private suspend fun doSuspendWork() {
-    log("Before suspending for 10s")
+    trace("Before suspending for 10s")
     delay(10000)
-    log("Finished suspending for 10s")
+    trace("Finished suspending for 10s")
 }
 
 private suspend fun doStressWork() {
     coroutineScope {
-        log("Before stress work")
+        trace("Before stress work")
 
         repeat(10_000) {
             launch(Dispatchers.Default) {
                 delay(10_000)
-                log("Finished Job #$it")
+                trace("Finished Job #$it")
             }
         }
     }
-    log("After finishing stress work")
+    trace("After finishing stress work")
 }
 
 private suspend fun doStressWorkBlocking() {
     coroutineScope {
-        log("before stress work BLOCKING")
+        trace("before stress work BLOCKING")
 
         repeat(10_000) {
             launch(Dispatchers.Default) {
                 Thread.sleep(10_000)
-                log("Finished Blocking Job #$it")
+                trace("Finished Blocking Job #$it")
             }
         }
     }
-    log("After finishing stress work BLOCKING")
+    trace("After finishing stress work BLOCKING")
 }
