@@ -1,7 +1,6 @@
 package com.xunfos.ktorPlayground
 
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.xunfos.ktorPlayground.thrift.basic.AsyncThriftHandler
 import com.xunfos.ktorPlayground.thrift.basic.ThriftHandler
 import com.xunfos.ktorPlayground.util.traceLog
 import com.xunfos.playground.thrift.PlaygroundService
@@ -41,25 +40,6 @@ fun Application.module(testing: Boolean = false) {
         post("/sync/api") {
             traceLog("started api call")
             val processor = PlaygroundService.Processor<PlaygroundService.Iface>(ThriftHandler())
-            val request = call.receive<ByteArray>()
-
-            val inputProtocol = TJSONProtocol(TMemoryInputTransport(request))
-            val outputBuffer = TMemoryBuffer(0)
-            val outputProtocol = TJSONProtocol(outputBuffer)
-
-            try {
-                processor.process(inputProtocol, outputProtocol)
-                // val response = outputProtocol.readString()
-                val response = outputBuffer.toString(Charsets.UTF_8)
-                call.respondText(response)
-            } catch (e: Exception) {
-                traceLog("Exception")
-                traceLog(e)
-            }
-        }
-
-        post("/async/api") {
-            val processor = PlaygroundService.AsyncProcessor<PlaygroundService.AsyncIface>(AsyncThriftHandler())
             val request = call.receive<ByteArray>()
 
             val inputProtocol = TJSONProtocol(TMemoryInputTransport(request))
