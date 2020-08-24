@@ -38,7 +38,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        post("/api") {
+        post("/sync/api") {
             traceLog("started api call")
             val processor = PlaygroundService.Processor<PlaygroundService.Iface>(ThriftHandler())
             val request = call.receive<ByteArray>()
@@ -58,7 +58,7 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
-        post("/async") {
+        post("/async/api") {
             val processor = PlaygroundService.AsyncProcessor<PlaygroundService.AsyncIface>(AsyncThriftHandler())
             val request = call.receive<ByteArray>()
 
