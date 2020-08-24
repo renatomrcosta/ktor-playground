@@ -1,8 +1,8 @@
 package com.xunfos.ktorPlayground
 
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.xunfos.ktorPlayground.thrift.AsyncThriftHandler
-import com.xunfos.ktorPlayground.thrift.ThriftHandler
+import com.xunfos.ktorPlayground.thrift.basic.AsyncThriftHandler
+import com.xunfos.ktorPlayground.thrift.basic.ThriftHandler
 import com.xunfos.ktorPlayground.util.traceLog
 import com.xunfos.playground.thrift.PlaygroundService
 import io.ktor.application.Application
