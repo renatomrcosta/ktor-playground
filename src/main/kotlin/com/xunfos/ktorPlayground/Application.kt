@@ -16,15 +16,25 @@ import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import org.apache.thrift.protocol.TJSONProtocol
 import org.apache.thrift.transport.TMemoryBuffer
 import org.apache.thrift.transport.TMemoryInputTransport
+import java.util.concurrent.Executors
+import com.xunfos.ktorPlayground.thrift.coroutines.ThriftHandler as CoThriftHandler
+
+private val thriftCoroutineScope =
+    CoroutineScope(
+        Executors.newCachedThreadPool().asCoroutineDispatcher()
+    )
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -49,7 +59,6 @@ fun Application.module(testing: Boolean = false) {
 
             try {
                 processor.process(inputProtocol, outputProtocol)
-                // val response = outputProtocol.readString()
                 val response = outputBuffer.toString(Charsets.UTF_8)
                 call.respondText(response)
             } catch (e: Exception) {
@@ -68,12 +77,37 @@ fun Application.module(testing: Boolean = false) {
 
             try {
                 processor.process(inputProtocol, outputProtocol)
-                // val response = outputProtocol.readString()
+
+                delay(2_000)
                 val response = outputBuffer.toString(Charsets.UTF_8)
                 call.respondText(response)
             } catch (e: Exception) {
                 traceLog("Exception")
                 traceLog(e)
+            }
+        }
+
+
+        post("/coroutines/api") {
+            withContext(thriftCoroutineScope.coroutineContext) {
+                supervisorScope {
+                    traceLog("started coroutine API call call")
+                    val processor = PlaygroundService.Processor<PlaygroundService.Iface>(CoThriftHandler())
+                    val request = call.receive<ByteArray>()
+
+                    val inputProtocol = TJSONProtocol(TMemoryInputTransport(request))
+                    val outputBuffer = TMemoryBuffer(0)
+                    val outputProtocol = TJSONProtocol(outputBuffer)
+
+                    try {
+                        processor.process(inputProtocol, outputProtocol)
+                        val response = outputBuffer.toString(Charsets.UTF_8)
+                        call.respondText(response)
+                    } catch (e: Exception) {
+                        traceLog("Exception")
+                        traceLog(e.toString())
+                    }
+                }
             }
         }
 

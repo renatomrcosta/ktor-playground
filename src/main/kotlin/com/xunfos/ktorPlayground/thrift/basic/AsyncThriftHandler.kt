@@ -6,25 +6,39 @@ import com.xunfos.playground.thrift.GetUserResponse
 import com.xunfos.playground.thrift.GetUsersResponse
 import com.xunfos.playground.thrift.PlaygroundService
 import com.xunfos.playground.thrift.User
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
 import org.apache.thrift.async.AsyncMethodCallback
+import java.util.concurrent.Executors
 import kotlin.random.Random
 
 class AsyncThriftHandler : PlaygroundService.AsyncIface {
     private val rng = Random(System.currentTimeMillis())
 
-    override fun doWork(resultHandler: AsyncMethodCallback<Void>) {
-        val workId = rng.nextLong()
+    private val genericCoroutineScope: CoroutineScope =
+        CoroutineScope(Executors.newCachedThreadPool().asCoroutineDispatcher())
 
-        traceLog("[workId: $workId] Starting doWork Fun. ${WORK_TIME}ms of work")
-        Thread.sleep(WORK_TIME)
-        traceLog("[workId: $workId] Finishing doWork Fun.")
+    private val doWorkScope: CoroutineScope =
+        CoroutineScope(Executors.newFixedThreadPool(100).asCoroutineDispatcher())
 
-        resultHandler.onComplete(null)
+    override fun doWork(resultHandler: AsyncMethodCallback<Void?>) {
+        doWorkScope.launch {
+            val workId = rng.nextLong()
+
+            traceLog("[workId: $workId] Starting doWork Fun. ${WORK_TIME}ms of work")
+            Thread.sleep(WORK_TIME)
+            traceLog("[workId: $workId] Finishing doWork Fun.")
+
+            resultHandler.onComplete(null)
+        }
     }
 
-    override fun ping(resultHandler: AsyncMethodCallback<Void>) {
-        traceLog("Pong!")
-        resultHandler.onComplete(null)
+    override fun ping(resultHandler: AsyncMethodCallback<Void?>) {
+        genericCoroutineScope.launch {
+            traceLog("Pong!")
+            resultHandler.onComplete(null)
+        }
     }
 
     override fun getUser(request: GetUserRequest, resultHandler: AsyncMethodCallback<GetUserResponse>) {
