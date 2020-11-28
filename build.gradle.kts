@@ -26,6 +26,6 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:1.3.2")
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("io.ktor:ktor-server-core:1.3.2")
-    implementation("io.ktor:ktor-jackson:1.3.2")
+    implementation("io.ktor:ktor-jackson:1.4.2")
     implementation("org.apache.thrift:libthrift:0.13.0")
 }
